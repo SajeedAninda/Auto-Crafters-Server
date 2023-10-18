@@ -47,13 +47,42 @@ async function run() {
         app.post("/products", async (req, res) => {
             const product = req.body;
             const result = await productCollection.insertOne(product);
-            console.log(result);
+            // console.log(result);
             res.send(result);
         });
         app.get("/products", async (req, res) => {
             const result = await productCollection.find().toArray();
             res.send(result);
         });
+        app.get("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id),
+            };
+            const result = await productCollection.findOne(query);
+            // console.log(result);
+            res.send(result);
+        });
+        app.put("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const productData = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedProducts = {
+                $set: {
+                    productName: productData.productName,
+                    brand: productData.brand,
+                    imgUrl: productData.imgUrl,
+                    productPrice: productData.productPrice,
+                    productType: productData.productType,
+                    productDescription: productData.productDescription,
+                    rating: productData.rating
+                },
+            };
+            const result = await productCollection.updateOne(filter, updatedProducts, options);
+            res.send(result);
+        });
+
 
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
