@@ -86,12 +86,23 @@ async function run() {
 
         // CART DATA 
         app.post("/cart", async (req, res) => {
-            const user = req.body;
-            //   console.log(user);
-            const result = await cartCollection.insertOne(user);
-            // console.log(result);
-            res.send(result);
+            const cart = req.body;
+            const existingProduct = await cartCollection.findOne({ userEmail: cart.userEmail, productName: cart.productName });
+        
+            if (existingProduct) {
+                return res.status(400).json({ success: false, error: "Product already exists in the cart" });
+            }
+        
+            const result = await cartCollection.insertOne(cart);
+            if (!result) {
+                return res.status(500).json({ success: false, error: "Failed to insert product" });
+            }
+        
+            res.status(201).json({ success: true, insertedId: result.insertedId });
         });
+        
+
+
         app.get("/cart", async (req, res) => {
             const result = await cartCollection.find().toArray();
             res.send(result);
